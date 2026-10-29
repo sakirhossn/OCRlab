@@ -1,0 +1,59 @@
+{
+    # Global settings
+    admin off
+    persist_config off
+    auto_https disable_redirects # Can be set to 'default' when using live public domain
+    email {$ACME_EMAIL:admin@example.com}
+    servers {
+        trusted_proxies static private_ranges
+    }
+}
+
+{$APP_DOMAIN:localhost} {
+    # Logging
+    log {
+        output stdout
+        format json
+    }
+
+    # Request limits
+    request_body {
+        max_size 64MB
+    }
+
+    # Compression
+    encode zstd gzip
+
+    # Hardened Security Headers
+    header {
+        # Strict Transport Security (HSTS)
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # Clickjacking defense
+        X-Frame-Options "DENY"
+        # XSS filtering for legacy browsers
+        X-XSS-Protection "1; mode=block"
+        # Referrer Policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Restrict browser capabilities
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+        # Content Security Policy (allows Tailwind CDN and Google Fonts used by Dashboard)
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self';"
+        # Remove server header identity
+        -Server
+    }
+
+    # Reverse Proxy to FastAPI Control Plane
+    reverse_proxy control-plane:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        transport http {
+            keepalive 30s
+            response_header_timeout 60s
+        }
+    }
+}

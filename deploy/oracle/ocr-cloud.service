@@ -1,0 +1,19 @@
+[Unit]
+Description=Unlimited OCR Cloud Control Plane (Docker Compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/ocrLab/deploy/oracle
+ExecStart=/usr/bin/docker compose -f docker-compose.oracle.yml up -d --remove-orphans
+ExecStop=/usr/bin/docker compose -f docker-compose.oracle.yml down
+ExecReload=/usr/bin/docker compose -f docker-compose.oracle.yml restart
+TimeoutStartSec=300
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

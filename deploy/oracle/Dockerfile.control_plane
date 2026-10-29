@@ -1,0 +1,60 @@
+# Multi-Arch Production Dockerfile for Layer A Control Plane (Oracle ARM64 & AMD64)
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+# Install build essentials if needed for wheels
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv for fast, reliable dependency resolution
+COPY --from=ghcr.io/astral-sh/uv:0.5.26 /uv /uvx /bin/
+
+# Copy dependency specifications
+COPY pyproject.toml uv.lock* ./
+
+# Install production dependencies into virtual environment
+RUN uv venv /opt/venv && \
+    uv pip install --no-cache -r pyproject.toml --extra test
+
+# Final runtime stage
+FROM python:3.11-slim AS runner
+
+WORKDIR /app
+
+# Install runtime dependencies: libmupdf, curl for healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtualenv from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED="1" \
+    PYTHONDONTWRITEBYTECODE="1"
+
+# Create unprivileged application user
+RUN groupadd -g 10001 appgroup && \
+    useradd -u 10001 -g appgroup -s /bin/bash -m appuser
+
+# Copy application source code
+COPY app/ ./app/
+COPY README.md pyproject.toml ./
+
+# Create vault storage directory with secure permissions
+RUN mkdir -p /var/data/vault && \
+    chown -R appuser:appgroup /var/data/vault /app
+
+USER appuser
+
+EXPOSE 8000
+
+# Healthcheck checking the public health endpoint
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8000/v1/health || exit 1
+
+# Start FastAPI with Uvicorn (2 workers optimal for 2 OCPUs ARM64)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--proxy-headers", "--forwarded-allow-ips", "*"]

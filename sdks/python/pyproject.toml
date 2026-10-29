@@ -1,0 +1,14 @@
+[project]
+name = "unlimited-ocr"
+version = "1.0.0"
+description = "Official Python SDK for Unlimited OCR Cloud (Baidu Unlimited-OCR-2 & PyMuPDF)"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -1,0 +1,13 @@
+{
+  "name": "@unlimited-ocr/sdk",
+  "version": "1.0.0",
+  "description": "Official TypeScript & JavaScript SDK for Unlimited OCR Cloud",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": ["ocr", "unlimited-ocr", "pdf", "table-extraction", "baidu", "vision-language"],
+  "author": "Unlimited OCR Cloud Team",
+  "license": "MIT"
+}

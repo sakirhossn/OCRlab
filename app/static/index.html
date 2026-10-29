@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unlimited OCR Cloud — Enterprise Document Extraction</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Marked for markdown preview -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+  </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 flex overflow-hidden">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-colors duration-200 z-20">
+    <!-- Brand Header -->
+    <div class="h-16 flex items-center gap-3 px-6 border-b border-slate-200 dark:border-slate-800">
+      <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold shadow-sm shadow-blue-500/20">
+        <i data-lucide="layers" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h1 class="text-sm font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">Unlimited OCR</h1>
+        <span class="text-[11px] font-medium text-blue-600 dark:text-blue-400">Enterprise Cloud</span>
+      </div>
+    </div>
+
+    <!-- Navigation Items -->
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1 custom-scrollbar">
+      <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">Core Workflows</div>
+      
+      <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 transition-colors">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Dashboard</span>
+      </button>
+
+      <button onclick="switchView('convert')" id="nav-convert" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="file-up" class="w-4 h-4"></i>
+        <span>Convert Document</span>
+      </button>
+
+      <button onclick="switchView('batch')" id="nav-batch" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="files" class="w-4 h-4"></i>
+        <span>Batch Processing</span>
+      </button>
+
+      <button onclick="switchView('history')" id="nav-history" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="history" class="w-4 h-4"></i>
+        <span>Conversion History</span>
+      </button>
+
+      <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pt-4 pb-1">Developer & API</div>
+
+      <button onclick="switchView('apikeys')" id="nav-apikeys" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="key" class="w-4 h-4"></i>
+        <span>API Keys</span>
+      </button>
+
+      <button onclick="switchView('apidocs')" id="nav-apidocs" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="book-open" class="w-4 h-4"></i>
+        <span>API Documentation</span>
+      </button>
+
+      <button onclick="switchView('webhooks')" id="nav-webhooks" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="webhook" class="w-4 h-4"></i>
+        <span>Webhooks</span>
+      </button>
+
+      <button onclick="switchView('usage')" id="nav-usage" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="gauge" class="w-4 h-4"></i>
+        <span>Usage & Quotas</span>
+      </button>
+
+      <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pt-4 pb-1">Platform</div>
+
+      <button onclick="switchView('settings')" id="nav-settings" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        <span>Settings</span>
+      </button>
+
+      <button onclick="switchView('admin')" id="nav-admin" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+        <span>Admin Console</span>
+      </button>
+    </nav>
+
+    <!-- Quota Mini Status & Theme Toggle -->
+    <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Monthly Quota</span>
+        <span id="sidebar-quota-pct" class="text-xs font-semibold text-blue-600 dark:text-blue-400">0%</span>
+      </div>
+      <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+        <div id="sidebar-quota-bar" class="bg-blue-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+      <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
+        <button onclick="toggleDarkMode()" class="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white flex items-center gap-1.5">
+          <i id="theme-icon" data-lucide="moon" class="w-3.5 h-3.5"></i>
+          <span id="theme-text">Dark Mode</span>
+        </button>
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Live
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <!-- Top Bar -->
+    <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 flex-shrink-0 z-10">
+      <div class="flex items-center gap-4">
+        <h2 id="view-title" class="text-lg font-semibold text-slate-900 dark:text-white">Dashboard Overview</h2>
+        <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500 border-l border-slate-200 dark:border-slate-700 pl-4">
+          <span>Engine: <strong class="text-slate-700 dark:text-slate-200">Unlimited-OCR-2</strong></span>
+          <span class="text-slate-300 dark:text-slate-700">•</span>
+          <span>Layer A: <strong class="text-slate-700 dark:text-slate-200">Oracle ARM64</strong></span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- API Key Status / Configuration Pill -->
+        <button onclick="openApiKeyModal()" class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 shadow-sm transition-colors">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400"></i>
+          <span id="active-key-label">Active Key: Configured</span>
+        </button>
+
+        <!-- New Convert Shortcut -->
+        <button onclick="switchView('convert')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 transition-colors">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>New Upload</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable View Container -->
+    <main id="view-container" class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50 dark:bg-slate-950">
+      
+      <!-- VIEW 1: DASHBOARD -->
+      <section id="view-dashboard" class="space-y-6">
+        <!-- Stats Cards Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Total Documents</span>
+              <i data-lucide="file-text" class="w-4 h-4 text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <div id="stat-total-docs" class="mt-2 text-2xl font-bold text-slate-900 dark:text-white">0</div>
+            <div class="mt-1 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <i data-lucide="trending-up" class="w-3 h-3"></i> Real-time DB sync
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Pages Processed</span>
+              <i data-lucide="book-open" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+            </div>
+            <div id="stat-pages-processed" class="mt-2 text-2xl font-bold text-slate-900 dark:text-white">0</div>
+            <div class="mt-1 text-xs text-slate-500">Current billing month</div>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Active Workers</span>
+              <i data-lucide="cpu" class="w-4 h-4 text-purple-600 dark:text-purple-400"></i>
+            </div>
+            <div id="stat-active-workers" class="mt-2 text-2xl font-bold text-slate-900 dark:text-white">1</div>
+            <div class="mt-1 text-xs text-slate-500">Outbound HTTPS leases</div>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">System Health</span>
+              <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+            <div id="stat-health-status" class="mt-2 text-2xl font-bold text-emerald-600">Healthy</div>
+            <div class="mt-1 text-xs text-slate-500">Latency: <strong class="text-slate-700 dark:text-slate-300">~12ms</strong></div>
+          </div>
+        </div>
+
+        <!-- Quick Upload Action & Recent Jobs Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Recent Jobs Table (2 cols) -->
+          <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Recent Conversions</h3>
+              <button onclick="refreshDashboardJobs()" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+              </button>
+            </div>
+            <div class="flex-1 overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th class="px-6 py-3">Job ID</th>
+                    <th class="px-6 py-3">Mode</th>
+                    <th class="px-6 py-3">Status</th>
+                    <th class="px-6 py-3">Created</th>
+                    <th class="px-6 py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-recent-jobs" class="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                  <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">Loading recent conversions...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Quick Upload Widget (1 col) -->
+          <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-2">Fast Convert</h3>
+            <p class="text-xs text-slate-500 mb-4">Drop a PDF or image here for instant OCR extraction.</p>
+            
+            <div id="quick-dropzone" class="flex-1 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors">
+              <i data-lucide="upload-cloud" class="w-10 h-10 text-blue-600 mb-2"></i>
+              <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">Click to browse or drop file</span>
+              <span class="text-[11px] text-slate-400 mt-1">PDF, PNG, JPG (Max 50MB)</span>
+              <input type="file" id="quick-file-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg">
+            </div>
+
+            <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
+              <span>Mode: <strong class="text-slate-800 dark:text-slate-200">Auto (Hybrid)</strong></span>
+              <button onclick="switchView('convert')" class="text-blue-600 dark:text-blue-400 hover:underline">Full Options &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: CONVERT DOCUMENT (SPLIT SCREEN VIEWER) -->
+      <section id="view-convert" class="space-y-4 hidden h-full flex flex-col">
+        <!-- Control Bar -->
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Processing Mode:</label>
+            <select id="convert-mode-select" class="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-1.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="auto">Auto (Hybrid: Native Vector + Baidu AI OCR)</option>
+              <option value="native_only">Native Vector Only (Digital sub-second, zero GPU)</option>
+              <option value="ocr_only">Unlimited-OCR-2 Only (Full deep visual reconstruction)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input type="file" id="split-file-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg">
+            <button onclick="document.getElementById('split-file-input').click()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              <span>Select File</span>
+            </button>
+            <button id="btn-process-job" onclick="triggerJobProcessing()" class="hidden flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i>
+              <span>Run Worker</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Processing Progress Banner -->
+        <div id="convert-progress-banner" class="hidden bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div>
+              <span id="convert-progress-text" class="text-xs font-medium text-blue-900 dark:text-blue-300">Processing document...</span>
+              <span id="convert-job-badge" class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-blue-200 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-mono">job_id</span>
+            </div>
+          </div>
+          <span id="convert-pct" class="text-xs font-semibold text-blue-700 dark:text-blue-400">45%</span>
+        </div>
+
+        <!-- Split Screen Main Body -->
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[500px]">
+          <!-- Left Pane: Source Document Viewer -->
+          <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
+            <div class="h-10 px-4 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <i data-lucide="file" class="w-3.5 h-3.5 text-blue-600"></i>
+                <span id="left-filename">Source Document</span>
+              </span>
+              <span id="left-page-badge" class="text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Page 1 of 1</span>
+            </div>
+            
+            <div id="source-preview-area" class="flex-1 flex flex-col items-center justify-center p-6 overflow-auto custom-scrollbar bg-slate-100/50 dark:bg-slate-950/50">
+              <!-- Empty state -->
+              <div id="source-empty-state" class="text-center p-8">
+                <i data-lucide="file-text" class="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-3"></i>
+                <p class="text-xs font-medium text-slate-500">No document uploaded yet</p>
+                <p class="text-[11px] text-slate-400 mt-1">Select a PDF or image above to view rendered pages</p>
+              </div>
+
+              <!-- Rendered preview container -->
+              <div id="source-content-container" class="hidden w-full max-w-md bg-white dark:bg-slate-900 shadow-md border border-slate-200 dark:border-slate-800 p-6 rounded-lg text-xs leading-relaxed">
+                <div class="h-6 border-b border-slate-100 dark:border-slate-800 mb-4 flex justify-between text-[10px] text-slate-400">
+                  <span id="preview-meta-title">Document Inspection</span>
+                  <span>150 DPI Rendered</span>
+                </div>
+                <div id="source-rendered-text" class="space-y-3 font-serif">
+                  <!-- Dynamic text or canvas -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Pane: Structured Output Viewer -->
+          <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
+            <!-- Output Format Tabs -->
+            <div class="h-10 px-4 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-1">
+                <button onclick="switchOutputTab('markdown')" id="tab-btn-markdown" class="output-tab px-2.5 py-1 text-xs font-medium rounded-md bg-white dark:bg-slate-800 text-blue-600 shadow-sm border border-slate-200 dark:border-slate-700">Markdown</button>
+                <button onclick="switchOutputTab('json')" id="tab-btn-json" class="output-tab px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900">JSON Contract</button>
+                <button onclick="switchOutputTab('table')" id="tab-btn-table" class="output-tab px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900">Tables</button>
+                <button onclick="switchOutputTab('text')" id="tab-btn-text" class="output-tab px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900">Plain Text</button>
+              </div>
+
+              <!-- Export / Copy Actions -->
+              <div class="flex items-center gap-2">
+                <button onclick="copyCurrentOutput()" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white" title="Copy to clipboard">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="downloadCurrentOutput()" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white" title="Download result">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Content Container -->
+            <div class="flex-1 overflow-auto p-4 custom-scrollbar text-xs">
+              <div id="output-markdown" class="prose dark:prose-invert max-w-none text-xs">
+                <p class="text-slate-400 text-center py-12">Results will appear here after conversion.</p>
+              </div>
+
+              <pre id="output-json" class="hidden font-mono text-[11px] leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre overflow-x-auto"></pre>
+
+              <div id="output-table" class="hidden overflow-x-auto">
+                <table class="w-full border-collapse border border-slate-200 dark:border-slate-800 text-left text-xs">
+                  <thead id="output-table-head" class="bg-slate-100 dark:bg-slate-800"></thead>
+                  <tbody id="output-table-body" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                </table>
+              </div>
+
+              <pre id="output-text" class="hidden font-mono text-xs leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: BATCH PROCESSING -->
+      <section id="view-batch" class="space-y-6 hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-1">Batch PDF Conversion</h3>
+          <p class="text-xs text-slate-500 mb-4">Select multiple PDF files or an entire folder to process in parallel queue.</p>
+
+          <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-8 text-center">
+            <i data-lucide="folder-up" class="w-10 h-10 text-blue-600 mx-auto mb-2"></i>
+            <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">Select multiple PDF documents</span>
+            <input type="file" id="batch-file-input" multiple class="hidden" accept=".pdf">
+            <div class="mt-3">
+              <button onclick="document.getElementById('batch-file-input').click()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg shadow-sm">Choose Files</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Batch Queue Status</h4>
+            <button class="text-xs text-blue-600 hover:underline">Download All (ZIP)</button>
+          </div>
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-[10px] uppercase">
+              <tr>
+                <th class="px-4 py-2">Filename</th>
+                <th class="px-4 py-2">Size</th>
+                <th class="px-4 py-2">Pages</th>
+                <th class="px-4 py-2">Status</th>
+                <th class="px-4 py-2 text-right">Progress</th>
+              </tr>
+            </thead>
+            <tbody id="batch-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
+              <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">No batch conversions in queue.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 4: CONVERSION HISTORY -->
+      <section id="view-history" class="space-y-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Conversion History</h3>
+            <button onclick="loadHistoryView()" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+            </button>
+          </div>
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-[10px] uppercase">
+              <tr>
+                <th class="px-6 py-3">Job ID</th>
+                <th class="px-6 py-3">Mode</th>
+                <th class="px-6 py-3">Status</th>
+                <th class="px-6 py-3">Created</th>
+                <th class="px-6 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
+              <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">Loading history...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 5: API KEYS -->
+      <section id="view-apikeys" class="space-y-6 hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">API Keys Management</h3>
+            <p class="text-xs text-slate-500 mt-1">Manage secret API credentials for Python, TypeScript, and external integrations.</p>
+          </div>
+          <button onclick="openCreateKeyModal()" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Create API Key</span>
+          </button>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-[10px] uppercase">
+              <tr>
+                <th class="px-6 py-3">Name</th>
+                <th class="px-6 py-3">Key Prefix</th>
+                <th class="px-6 py-3">Rate Limit</th>
+                <th class="px-6 py-3">Monthly Quota</th>
+                <th class="px-6 py-3">Created</th>
+                <th class="px-6 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="apikeys-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
+              <tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">Loading API keys...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 6: API DOCUMENTATION -->
+      <section id="view-apidocs" class="space-y-6 hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Public REST API (Version 1.0)</h3>
+          <p class="text-xs text-slate-500 mt-1">Direct endpoint references with authenticated examples.</p>
+          
+          <div class="mt-4 flex gap-3">
+            <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Swagger UI
+            </a>
+            <a href="/redoc" target="_blank" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5">
+              <i data-lucide="book" class="w-3.5 h-3.5"></i> ReDoc Specification
+            </a>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">POST</span>
+              <code class="text-xs font-mono font-semibold text-slate-900 dark:text-white">/v1/documents</code>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">Uploads a PDF or image file and initiates an asynchronous OCR processing job.</p>
+            <pre class="bg-slate-950 text-slate-100 p-3 rounded-lg text-xs overflow-x-auto">curl -X POST https://api.ocrlab.cloud/v1/documents \
+  -H "Authorization: Bearer ocr_live_xxxxxxxxxxxxxxxx" \
+  -F "file=@document.pdf" \
+  -F "mode=auto"</pre>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">GET</span>
+              <code class="text-xs font-mono font-semibold text-slate-900 dark:text-white">/v1/jobs/{id}/result</code>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">Retrieves structured OCR results in JSON (schema 1.0), Markdown, or plain text.</p>
+            <pre class="bg-slate-950 text-slate-100 p-3 rounded-lg text-xs overflow-x-auto">curl -X GET "https://api.ocrlab.cloud/v1/jobs/job_123/result?format=json" \
+  -H "Authorization: Bearer ocr_live_xxxxxxxxxxxxxxxx"</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 7: WEBHOOKS -->
+      <section id="view-webhooks" class="space-y-6 hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Webhook Endpoints</h3>
+            <p class="text-xs text-slate-500 mt-1">Receive signed HMAC-SHA256 notifications when jobs succeed or fail.</p>
+          </div>
+          <button onclick="openRegisterWebhookModal()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+            Register Webhook
+          </button>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-[10px] uppercase">
+              <tr>
+                <th class="px-6 py-3">Destination URL</th>
+                <th class="px-6 py-3">Events</th>
+                <th class="px-6 py-3">Status</th>
+                <th class="px-6 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="webhooks-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
+              <tr><td colspan="4" class="px-6 py-8 text-center text-slate-400">No webhooks registered.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 8: USAGE & QUOTAS -->
+      <section id="view-usage" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-xs text-slate-500 uppercase font-medium">Monthly Page Limit</span>
+            <div id="usage-quota-limit" class="text-2xl font-bold text-slate-900 dark:text-white mt-2">1,000</div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-xs text-slate-500 uppercase font-medium">Pages Consumed</span>
+            <div id="usage-quota-used" class="text-2xl font-bold text-blue-600 mt-2">0</div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-xs text-slate-500 uppercase font-medium">Pages Remaining</span>
+            <div id="usage-quota-remaining" class="text-2xl font-bold text-emerald-600 mt-2">1,000</div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Tier Quota Consumption</h4>
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+            <div id="usage-bar-large" class="bg-blue-600 h-full rounded-full transition-all" style="width: 0%"></div>
+          </div>
+          <p class="text-xs text-slate-500 mt-3">Quotas reset on the 1st of every calendar month (UTC). To request quota expansion, contact enterprise support.</p>
+        </div>
+      </section>
+
+      <!-- VIEW 9: SETTINGS -->
+      <section id="view-settings" class="space-y-6 hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Security & Retention Policy</h3>
+          
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div>
+              <span class="text-xs font-medium text-slate-800 dark:text-slate-200">Data Retention Period</span>
+              <p class="text-[11px] text-slate-500">Automatically shred document and result files after this duration.</p>
+            </div>
+            <select class="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5">
+              <option value="24h">24 Hours (High Security)</option>
+              <option value="7d" selected>7 Days (Standard)</option>
+              <option value="30d">30 Days (Extended)</option>
+              <option value="immediate">Immediate post-fetch (Zero Storage)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div>
+              <span class="text-xs font-medium text-slate-800 dark:text-slate-200">At-Rest Vault Encryption</span>
+              <p class="text-[11px] text-slate-500">AES-256-GCM authenticated encryption on Oracle Cloud storage.</p>
+            </div>
+            <span class="text-xs font-semibold text-emerald-600">Enabled (AES-256-GCM)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 10: ADMIN CONSOLE -->
+      <section id="view-admin" class="space-y-6 hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Oracle Cloud Infrastructure (Layer A)</h3>
+              <p class="text-xs text-slate-500">Ampere A1 ARM64 Control Plane Resource Monitor</p>
+            </div>
+            <button onclick="reclaimExpiredLeases()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-lg shadow-sm">
+              Reclaim Stale Leases
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <span class="text-slate-500">CPU Allocation</span>
+              <p class="font-bold text-slate-800 dark:text-slate-200 mt-1">2 OCPU (Ampere A1 ARM64)</p>
+            </div>
+            <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <span class="text-slate-500">RAM Budget</span>
+              <p class="font-bold text-slate-800 dark:text-slate-200 mt-1">12 GB (Under Free Limit)</p>
+            </div>
+            <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <span class="text-slate-500">Edge Proxy</span>
+              <p class="font-bold text-slate-800 dark:text-slate-200 mt-1">Caddy (TLS 1.3 Auto)</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal: API Key Configuration -->
+  <div id="modal-apikey" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Configure Dashboard API Key</h3>
+        <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <p class="text-xs text-slate-500">Enter your raw API key (`ocr_live_...`) to authorize browser requests to the REST API.</p>
+      <div>
+        <input type="text" id="input-api-key" placeholder="ocr_live_xxxxxxxxxxxxxxxxxxxxxxxx" class="w-full text-xs font-mono px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeApiKeyModal()" class="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900">Cancel</button>
+        <button onclick="saveApiKey()" class="px-4 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Create New API Key (Secret Reveal Once) -->
+  <div id="modal-create-key" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Create New API Key</h3>
+        <button onclick="closeCreateKeyModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Key Name</label>
+          <input type="text" id="new-key-name" placeholder="e.g. Production Service" class="mt-1 w-full text-xs px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Rate Limit (RPM)</label>
+          <input type="number" id="new-key-rpm" value="60" class="mt-1 w-full text-xs px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none">
+        </div>
+      </div>
+      <div id="secret-reveal-box" class="hidden p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-lg space-y-2">
+        <span class="text-[11px] font-semibold text-amber-900 dark:text-amber-300">Save your secret key now. It will never be shown again:</span>
+        <div class="flex items-center gap-2">
+          <input type="text" id="revealed-secret-input" readonly class="w-full text-xs font-mono bg-white dark:bg-slate-900 p-2 border border-amber-300 dark:border-amber-800 rounded text-slate-900 dark:text-white">
+          <button onclick="copyRevealedSecret()" class="px-3 py-2 text-xs bg-amber-600 text-white rounded font-medium hover:bg-amber-700">Copy</button>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button id="btn-cancel-create-key" onclick="closeCreateKeyModal()" class="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900">Cancel</button>
+        <button id="btn-submit-create-key" onclick="submitCreateKey()" class="px-4 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm">Generate Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic JavaScript -->
+  <script>
+    // State
+    let currentApiKey = localStorage.getItem('ocrlab_api_key') || '';
+    let currentJobId = null;
+    let currentContract = null;
+    let currentMarkdown = '';
+    let currentText = '';
+    let activeTab = 'markdown';
+
+    // Initialize Lucide Icons
+    function initIcons() {
+      lucide.createIcons();
+    }
+
+    // View Navigation
+    function switchView(viewName) {
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      const target = document.getElementById('view-' + viewName);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('text-blue-600', 'bg-blue-50', 'dark:bg-blue-900/30', 'dark:text-blue-400');
+        btn.classList.add('text-slate-600', 'dark:text-slate-400');
+      });
+      const activeNav = document.getElementById('nav-' + viewName);
+      if (activeNav) {
+        activeNav.classList.remove('text-slate-600', 'dark:text-slate-400');
+        activeNav.classList.add('text-blue-600', 'bg-blue-50', 'dark:bg-blue-900/30', 'dark:text-blue-400');
+      }
+
+      // Title updates
+      const titles = {
+        dashboard: 'Dashboard Overview',
+        convert: 'Document Conversion (Split-Screen Viewer)',
+        batch: 'Batch Document Processing',
+        history: 'Conversion History',
+        apikeys: 'API Key Management',
+        apidocs: 'API Documentation & SDKs',
+        webhooks: 'Webhook Configuration',
+        usage: 'Usage & Quota Analytics',
+        settings: 'Platform Settings',
+        admin: 'Admin Console & Control Plane'
+      };
+      document.getElementById('view-title').textContent = titles[viewName] || 'Overview';
+
+      if (viewName === 'dashboard') loadDashboard();
+      if (viewName === 'history') loadHistoryView();
+      if (viewName === 'apikeys') loadApiKeysView();
+      if (viewName === 'webhooks') loadWebhooksView();
+      if (viewName === 'usage') loadUsageView();
+
+      initIcons();
+    }
+
+    // Toast Notifications
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        info: 'bg-blue-600 text-white',
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-rose-600 text-white'
+      };
+      toast.className = `p-3 rounded-lg shadow-lg text-xs font-medium flex items-center justify-between gap-3 ${colors[type] || colors.info} transition-all duration-300 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" class="text-white/80 hover:text-white">&times;</button>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Theme Toggle
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.setItem('ocrlab_theme', 'light');
+        document.getElementById('theme-text').textContent = 'Dark Mode';
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('ocrlab_theme', 'dark');
+        document.getElementById('theme-text').textContent = 'Light Mode';
+      }
+      initIcons();
+    }
+
+    // Output Tab Switching
+    function switchOutputTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.output-tab').forEach(t => {
+        t.classList.remove('bg-white', 'dark:bg-slate-800', 'text-blue-600', 'shadow-sm', 'border', 'border-slate-200', 'dark:border-slate-700');
+        t.classList.add('text-slate-600', 'dark:text-slate-400');
+      });
+      const activeBtn = document.getElementById('tab-btn-' + tab);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-600', 'dark:text-slate-400');
+        activeBtn.classList.add('bg-white', 'dark:bg-slate-800', 'text-blue-600', 'shadow-sm', 'border', 'border-slate-200', 'dark:border-slate-700');
+      }
+
+      ['markdown', 'json', 'table', 'text'].forEach(name => {
+        const el = document.getElementById('output-' + name);
+        if (el) el.classList.add('hidden');
+      });
+      const activeEl = document.getElementById('output-' + tab);
+      if (activeEl) activeEl.classList.remove('hidden');
+    }
+
+    // API Request Helper
+    async function apiRequest(path, options = {}) {
+      const headers = options.headers || {};
+      if (currentApiKey) {
+        headers['Authorization'] = `Bearer ${currentApiKey}`;
+      }
+      const resp = await fetch(path, { ...options, headers });
+      if (resp.status === 401) {
+        showToast('Authentication required. Configure an API key.', 'error');
+        openApiKeyModal();
+        throw new Error('Unauthorized');
+      }
+      return resp;
+    }
+
+    // Load Dashboard Overview
+    async function loadDashboard() {
+      try {
+        const healthResp = await fetch('/v1/health');
+        if (healthResp.ok) {
+          const h = await healthResp.json();
+          document.getElementById('stat-health-status').textContent = h.status.toUpperCase();
+        }
+
+        if (currentApiKey) {
+          const usageResp = await apiRequest('/v1/usage');
+          if (usageResp.ok) {
+            const u = await usageResp.json();
+            document.getElementById('stat-pages-processed').textContent = u.pages_used;
+            document.getElementById('sidebar-quota-pct').textContent = u.quota_percentage_used + '%';
+            document.getElementById('sidebar-quota-bar').style.width = Math.min(100, u.quota_percentage_used) + '%';
+          }
+
+          const jobsResp = await apiRequest('/v1/jobs?limit=5');
+          if (jobsResp.ok) {
+            const data = await jobsResp.json();
+            document.getElementById('stat-total-docs').textContent = data.total;
+            renderRecentJobs(data.items);
+          }
+        } else {
+          renderRecentJobs([]);
+        }
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      }
+    }
+
+    function renderRecentJobs(items) {
+      const tbody = document.getElementById('dashboard-recent-jobs');
+      if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-6 text-center text-slate-400">No conversions recorded yet. Upload a PDF to begin.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items.map(j => `
+        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+          <td class="px-6 py-3 font-mono text-[11px] text-blue-600 dark:text-blue-400">${j.id.slice(0, 8)}...</td>
+          <td class="px-6 py-3"><span class="px-2 py-0.5 rounded text-[10px] uppercase font-medium bg-slate-100 dark:bg-slate-800">${j.mode}</span></td>
+          <td class="px-6 py-3">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+              j.status === 'succeeded' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400' :
+              j.status === 'failed' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-400' :
+              'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-400 animate-pulse'
+            }">
+              ${j.status}
+            </span>
+          </td>
+          <td class="px-6 py-3 text-slate-400 text-[11px]">${new Date(j.created_at).toLocaleTimeString()}</td>
+          <td class="px-6 py-3 text-right">
+            <button onclick="inspectJob('${j.id}')" class="text-xs text-blue-600 hover:underline">Inspect &rarr;</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function inspectJob(jobId) {
+      currentJobId = jobId;
+      switchView('convert');
+      await pollJobResult(jobId);
+    }
+
+    // Document Upload & Split-Screen Handler
+    async function handleFileUpload(file) {
+      if (!file) return;
+      if (!currentApiKey) {
+        showToast('Please configure an API key first.', 'error');
+        openApiKeyModal();
+        return;
+      }
+
+      const mode = document.getElementById('convert-mode-select').value;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('mode', mode);
+
+      document.getElementById('convert-progress-banner').classList.remove('hidden');
+      document.getElementById('convert-progress-text').textContent = `Uploading ${file.name}...`;
+      document.getElementById('left-filename').textContent = file.name;
+
+      try {
+        const resp = await apiRequest('/v1/documents', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!resp.ok) {
+          const errData = await resp.json();
+          throw new Error(errData.error ? errData.error.message : 'Upload failed');
+        }
+
+        const data = await resp.json();
+        currentJobId = data.job_id;
+        document.getElementById('convert-job-badge').textContent = data.job_id.slice(0, 8);
+        document.getElementById('convert-progress-text').textContent = 'Queued for GPU inference worker...';
+        showToast('Document uploaded successfully!', 'success');
+
+        // Automatically trigger worker simulation if running locally
+        document.getElementById('btn-process-job').classList.remove('hidden');
+
+        // Poll for completion
+        await pollJobResult(currentJobId);
+      } catch (err) {
+        showToast(err.message, 'error');
+        document.getElementById('convert-progress-banner').classList.add('hidden');
+      }
+    }
+
+    async function pollJobResult(jobId) {
+      const banner = document.getElementById('convert-progress-banner');
+      banner.classList.remove('hidden');
+      let attempts = 0;
+
+      const interval = setInterval(async () => {
+        attempts++;
+        try {
+          const statusResp = await apiRequest(`/v1/jobs/${jobId}`);
+          if (statusResp.ok) {
+            const job = await statusResp.json();
+            document.getElementById('convert-pct').textContent = job.progress_pct + '%';
+            document.getElementById('convert-progress-text').textContent = `Status: ${job.status} (${job.progress_pct}%)`;
+
+            if (job.status === 'succeeded') {
+              clearInterval(interval);
+              banner.classList.add('hidden');
+              document.getElementById('btn-process-job').classList.add('hidden');
+              showToast('Processing complete! Output ready.', 'success');
+              await loadJobResult(jobId);
+            } else if (job.status === 'failed') {
+              clearInterval(interval);
+              banner.classList.add('hidden');
+              showToast('Job processing failed: ' + (job.error_message || 'Unknown error'), 'error');
+            }
+          }
+        } catch (err) {
+          clearInterval(interval);
+        }
+
+        if (attempts > 30) {
+          clearInterval(interval);
+        }
+      }, 1500);
+    }
+
+    async function loadJobResult(jobId) {
+      try {
+        const [jsonResp, mdResp, txtResp] = await Promise.all([
+          apiRequest(`/v1/jobs/${jobId}/result?format=json`),
+          apiRequest(`/v1/jobs/${jobId}/result?format=markdown`),
+          apiRequest(`/v1/jobs/${jobId}/result?format=text`),
+        ]);
+
+        if (jsonResp.ok) {
+          currentContract = await jsonResp.json();
+          document.getElementById('output-json').textContent = JSON.stringify(currentContract, null, 2);
+          renderTableTab(currentContract);
+          renderSourcePreview(currentContract);
+        }
+        if (mdResp.ok) {
+          currentMarkdown = await mdResp.text();
+          document.getElementById('output-markdown').innerHTML = marked.parse(currentMarkdown);
+        }
+        if (txtResp.ok) {
+          currentText = await txtResp.text();
+          document.getElementById('output-text').textContent = currentText;
+        }
+      } catch (err) {
+        console.error('Failed to load result content:', err);
+      }
+    }
+
+    function renderSourcePreview(contract) {
+      const emptyState = document.getElementById('source-empty-state');
+      const container = document.getElementById('source-content-container');
+      const textDiv = document.getElementById('source-rendered-text');
+      
+      emptyState.classList.add('hidden');
+      container.classList.remove('hidden');
+
+      if (contract.pages && contract.pages.length > 0) {
+        const p1 = contract.pages[0];
+        document.getElementById('left-page-badge').textContent = `Page 1 of ${contract.page_count} (${p1.route || 'hybrid'})`;
+        
+        textDiv.innerHTML = p1.blocks.map(b => {
+          if (b.type === 'heading') return `<h3 class="font-bold text-sm text-slate-900 dark:text-white border-b pb-1">${b.text}</h3>`;
+          if (b.type === 'table') return `<div class="p-2 bg-slate-50 dark:bg-slate-800 rounded text-[10px] font-mono">[Tabular Data: ${b.headers ? b.headers.join(' | ') : 'Table'}]</div>`;
+          return `<p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${b.text || ''}</p>`;
+        }).join('');
+      }
+    }
+
+    function renderTableTab(contract) {
+      const thead = document.getElementById('output-table-head');
+      const tbody = document.getElementById('output-table-body');
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      let foundTable = false;
+      for (const page of contract.pages || []) {
+        for (const block of page.blocks || []) {
+          if (block.type === 'table' && block.headers) {
+            foundTable = true;
+            thead.innerHTML = '<tr>' + block.headers.map(h => `<th class="border border-slate-300 dark:border-slate-700 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 font-semibold">${h}</th>`).join('') + '</tr>';
+            tbody.innerHTML = (block.rows || []).map(r => '<tr>' + r.map(c => `<td class="border border-slate-300 dark:border-slate-700 px-3 py-1.5">${c}</td>`).join('') + '</tr>').join('');
+            break;
+          }
+        }
+        if (foundTable) break;
+      }
+      if (!foundTable) {
+        tbody.innerHTML = '<tr><td class="p-6 text-center text-slate-400">No tables detected in document.</td></tr>';
+      }
+    }
+
+    // Trigger local pipeline extraction for the uploaded document
+    async function triggerJobProcessing() {
+      if (!currentJobId) {
+        showToast('No active document job to process.', 'warning');
+        return;
+      }
+      showToast('Extracting real layout & text from document...', 'info');
+      try {
+        const procResp = await fetch(`/internal/v1/jobs/${currentJobId}/process-local`, {
+          method: 'POST'
+        });
+        if (procResp.ok) {
+          const res = await procResp.json();
+          showToast(`Successfully processed ${res.pages_processed} pages!`, 'success');
+          await pollJobResult(currentJobId);
+        } else {
+          showToast('Extraction failed. Check server logs.', 'error');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('Error executing extraction: ' + e.message, 'error');
+      }
+    }
+
+    // Copy / Download handlers
+    function copyCurrentOutput() {
+      let content = currentMarkdown;
+      if (activeTab === 'json') content = JSON.stringify(currentContract, null, 2);
+      if (activeTab === 'text') content = currentText;
+      navigator.clipboard.writeText(content).then(() => showToast('Copied to clipboard!', 'success'));
+    }
+
+    function downloadCurrentOutput() {
+      let content = currentMarkdown;
+      let filename = 'result.md';
+      let mime = 'text/markdown';
+      if (activeTab === 'json') {
+        content = JSON.stringify(currentContract, null, 2);
+        filename = 'result.json';
+        mime = 'application/json';
+      } else if (activeTab === 'text') {
+        content = currentText;
+        filename = 'result.txt';
+        mime = 'text/plain';
+      }
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Modal Helpers
+    function openApiKeyModal() {
+      document.getElementById('input-api-key').value = currentApiKey;
+      document.getElementById('modal-apikey').classList.remove('hidden');
+    }
+    function closeApiKeyModal() {
+      document.getElementById('modal-apikey').classList.add('hidden');
+    }
+    function saveApiKey() {
+      const key = document.getElementById('input-api-key').value.trim();
+      currentApiKey = key;
+      localStorage.setItem('ocrlab_api_key', key);
+      document.getElementById('active-key-label').textContent = key ? `Key: ${key.slice(0, 12)}...` : 'Configure Key';
+      closeApiKeyModal();
+      showToast('API key saved!', 'success');
+      loadDashboard();
+    }
+
+    function openCreateKeyModal() {
+      document.getElementById('secret-reveal-box').classList.add('hidden');
+      document.getElementById('new-key-name').value = '';
+      document.getElementById('modal-create-key').classList.remove('hidden');
+    }
+    function closeCreateKeyModal() {
+      document.getElementById('modal-create-key').classList.add('hidden');
+    }
+    async function submitCreateKey() {
+      const name = document.getElementById('new-key-name').value || 'New Key';
+      const rpm = parseInt(document.getElementById('new-key-rpm').value) || 60;
+      try {
+        const resp = await apiRequest('/v1/api-keys', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, rate_limit_rpm: rpm, monthly_quota: 1000 })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          document.getElementById('revealed-secret-input').value = data.secret_key;
+          document.getElementById('secret-reveal-box').classList.remove('hidden');
+          // Update current API key if empty
+          if (!currentApiKey) {
+            currentApiKey = data.secret_key;
+            localStorage.setItem('ocrlab_api_key', currentApiKey);
+            document.getElementById('active-key-label').textContent = `Key: ${currentApiKey.slice(0, 12)}...`;
+          }
+          loadApiKeysView();
+          showToast('API Key generated!', 'success');
+        }
+      } catch (err) {
+        showToast('Failed to create key: ' + err.message, 'error');
+      }
+    }
+    function copyRevealedSecret() {
+      const input = document.getElementById('revealed-secret-input');
+      navigator.clipboard.writeText(input.value).then(() => showToast('Secret key copied!', 'success'));
+    }
+
+    // Additional Views Loading
+    async function loadApiKeysView() {
+      const tbody = document.getElementById('apikeys-table-body');
+      try {
+        const resp = await apiRequest('/v1/api-keys');
+        if (resp.ok) {
+          const keys = await resp.json();
+          if (keys.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-6 text-center text-slate-400">No API keys created yet.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = keys.map(k => `
+            <tr>
+              <td class="px-6 py-3 font-medium text-slate-800 dark:text-white">${k.name}</td>
+              <td class="px-6 py-3 font-mono text-slate-500">${k.key_prefix}...</td>
+              <td class="px-6 py-3">${k.rate_limit_rpm} RPM</td>
+              <td class="px-6 py-3">${k.monthly_quota} pgs</td>
+              <td class="px-6 py-3 text-slate-400">${new Date(k.created_at).toLocaleDateString()}</td>
+              <td class="px-6 py-3 text-right">
+                <button onclick="revokeKey('${k.id}')" class="text-rose-600 hover:underline">Revoke</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-6 text-center text-rose-500">Failed to load API keys.</td></tr>';
+      }
+    }
+
+    async function revokeKey(keyId) {
+      if (!confirm('Are you sure you want to revoke this API key?')) return;
+      const resp = await apiRequest(`/v1/api-keys/${keyId}`, { method: 'DELETE' });
+      if (resp.ok) {
+        showToast('API key revoked', 'info');
+        loadApiKeysView();
+      }
+    }
+
+    async function loadHistoryView() {
+      const tbody = document.getElementById('history-table-body');
+      try {
+        const resp = await apiRequest('/v1/jobs?limit=50');
+        if (resp.ok) {
+          const data = await resp.json();
+          if (!data.items || data.items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-6 text-center text-slate-400">No job history available.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = data.items.map(j => `
+            <tr>
+              <td class="px-6 py-3 font-mono text-blue-600 dark:text-blue-400">${j.id}</td>
+              <td class="px-6 py-3 uppercase">${j.mode}</td>
+              <td class="px-6 py-3"><span class="px-2 py-0.5 rounded text-[10px] ${j.status === 'succeeded' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'}">${j.status}</span></td>
+              <td class="px-6 py-3 text-slate-400">${new Date(j.created_at).toLocaleString()}</td>
+              <td class="px-6 py-3 text-right">
+                <button onclick="inspectJob('${j.id}')" class="text-blue-600 hover:underline">View Output</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-6 text-center text-rose-500">Failed to load history.</td></tr>';
+      }
+    }
+
+    async function loadUsageView() {
+      try {
+        const resp = await apiRequest('/v1/usage');
+        if (resp.ok) {
+          const u = await resp.json();
+          document.getElementById('usage-quota-limit').textContent = u.monthly_page_quota.toLocaleString();
+          document.getElementById('usage-quota-used').textContent = u.pages_used.toLocaleString();
+          document.getElementById('usage-quota-remaining').textContent = u.pages_remaining.toLocaleString();
+          document.getElementById('usage-bar-large').style.width = Math.min(100, u.quota_percentage_used) + '%';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadWebhooksView() {
+      const tbody = document.getElementById('webhooks-table-body');
+      try {
+        const resp = await apiRequest('/v1/webhooks');
+        if (resp.ok) {
+          const list = await resp.json();
+          if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-6 text-center text-slate-400">No active webhooks configured.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = list.map(w => `
+            <tr>
+              <td class="px-6 py-3 font-mono text-slate-800 dark:text-slate-200">${w.url}</td>
+              <td class="px-6 py-3">${(w.events || []).join(', ')}</td>
+              <td class="px-6 py-3"><span class="px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-medium">Active</span></td>
+              <td class="px-6 py-3 text-right"><button class="text-rose-600 hover:underline">Delete</button></td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-6 text-center text-slate-400">Failed to load webhooks.</td></tr>';
+      }
+    }
+
+    async function reclaimExpiredLeases() {
+      try {
+        const resp = await fetch('/internal/v1/jobs/reclaim-leases', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer worker-secret-token-change-me' }
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          showToast(`Reclaimed ${data.reclaimed_count} expired leases`, 'info');
+        }
+      } catch (e) {
+        showToast('Failed to trigger reclaim', 'error');
+      }
+    }
+
+    // Auto-Bootstrap Default Tenant/APIKey for seamless first run
+    async function autoBootstrapTenant() {
+      if (currentApiKey) return;
+      try {
+        // Query health
+        const h = await fetch('/v1/health');
+        if (h.ok) {
+          // If no key in local storage, prompt user or create dev tenant
+          document.getElementById('active-key-label').textContent = 'Key: Not Configured';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Setup Event Listeners
+    window.addEventListener('DOMContentLoaded', () => {
+      initIcons();
+
+      // Theme
+      if (localStorage.getItem('ocrlab_theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-text').textContent = 'Light Mode';
+      }
+
+      // Quick File Drop
+      const dropzone = document.getElementById('quick-dropzone');
+      const quickInput = document.getElementById('quick-file-input');
+      dropzone.addEventListener('click', () => quickInput.click());
+      quickInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          switchView('convert');
+          handleFileUpload(e.target.files[0]);
+        }
+      });
+
+      // Split File Input
+      const splitInput = document.getElementById('split-file-input');
+      splitInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleFileUpload(e.target.files[0]);
+        }
+      });
+
+      if (currentApiKey) {
+        document.getElementById('active-key-label').textContent = `Key: ${currentApiKey.slice(0, 10)}...`;
+      }
+
+      autoBootstrapTenant();
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>

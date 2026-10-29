@@ -1,0 +1,85 @@
+{
+  "name": "Unlimited OCR - Automated Invoice & Table Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "incoming-invoice-pdf",
+        "options": {}
+      },
+      "name": "Incoming Invoice Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.ocrlab.cloud/v1/documents",
+        "sendBinaryData": true,
+        "binaryPropertyName": "data",
+        "options": {
+          "bodyContentType": "multipart-form-data"
+        },
+        "headerParametersUi": {
+          "parameter": [
+            { "name": "Authorization", "value": "Bearer {{$env.UNLIMITED_OCR_API_KEY}}" }
+          ]
+        }
+      },
+      "name": "Submit to Unlimited OCR",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ocr-job-completed",
+        "options": {}
+      },
+      "name": "Wait for Signed OCR Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.ocrlab.cloud/v1/jobs/' + $json.body.job_id + '/result?format=json' }}",
+        "headerParametersUi": {
+          "parameter": [
+            { "name": "Authorization", "value": "Bearer {{$env.UNLIMITED_OCR_API_KEY}}" }
+          ]
+        }
+      },
+      "name": "Fetch Structured JSON Contract",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const contract = $input.first().json;\nconst lineItems = [];\n\nfor (const page of contract.pages || []) {\n  for (const block of page.blocks || []) {\n    if (block.type === 'table' && block.headers) {\n      for (const row of block.rows || []) {\n        lineItems.push({\n          description: row[0] || '',\n          quantity: parseFloat(row[1]) || 1,\n          unitPrice: row[2] || '',\n          total: row[3] || '',\n          pageNumber: page.page_number\n        });\n      }\n    }\n  }\n}\n\nreturn [{ json: { document_id: contract.document_id, lineItems } }];"
+      },
+      "name": "Map Table Blocks to Line Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1140, 300]
+    }
+  ],
+  "connections": {
+    "Incoming Invoice Webhook": {
+      "main": [[{ "node": "Submit to Unlimited OCR", "type": "main", "index": 0 }]]
+    },
+    "Submit to Unlimited OCR": {
+      "main": [[{ "node": "Wait for Signed OCR Webhook", "type": "main", "index": 0 }]]
+    },
+    "Wait for Signed OCR Webhook": {
+      "main": [[{ "node": "Fetch Structured JSON Contract", "type": "main", "index": 0 }]]
+    },
+    "Fetch Structured JSON Contract": {
+      "main": [[{ "node": "Map Table Blocks to Line Items", "type": "main", "index": 0 }]]
+    }
+  }
+}
